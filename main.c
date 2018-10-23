@@ -3,29 +3,35 @@
 #include <memory.h>
 #include "HeapADT.h"
 
-typedef struct Heap_S{
+struct Heap_S{
     size_t capacity;
+    int size;
     int (*compFu) (const void * lhs, const void * rhs);
-    void (*dumoEntry)(const void * item, FILE * outfp);
+    void (*dumpEntry)(const void * item, FILE * outfp);
     const void ** array;
 };
 
 int parent(int i){
-    return (i - 2)/2;
-}
-
-int right_child(int i){
-    return (2*i)+1;
+    return (i - 1)/2;
 }
 
 int left_child(int i){
-    return (2*i)+2;
+    return 1 + i * 2;
 }
 
-Heap create_empty_Heap(size_t capacity
+int right_child(int i){
+    return 2 + i * 2;
+}
+
+Heap createHeap(size_t capacity
         , int (*compFun)(const void * lhs, const void * rhs)
-        , (*dumpEntry) (const void * item, FILE * outfp)){
-    Heap new_heap = {capacity, compFun, dumpEntry};
+        , void (*dumpEntry) (const void * item, FILE * outfp)){
+    Heap new_heap;
+    new_heap = (Heap) malloc(sizeof(struct Heap_S));
+    new_heap->size = 0;
+    new_heap->capacity = capacity;
+    new_heap->dumpEntry = dumpEntry;
+    new_heap->compFu = compFun;
     return new_heap;
 }
 
@@ -34,7 +40,7 @@ void destroyHeap( Heap aHeap ){
 }
 
 size_t sizeHeap(Heap aHeap){
-    return aHeap->capacity;
+    return aHeap->size;
 }
 
 const void * topHeap(const Heap aHeap){
@@ -45,7 +51,6 @@ void * removeTopHeap(Heap aHeap){
     void * removed = aHeap->array[0];
     int last_idx = sizeof(aHeap->array)/ sizeof(aHeap->array[0]);
     memcpy(aHeap->array[0], aHeap->array[last_idx], sizeof(aHeap->array[0]));
-    free(aHeap->array[last_idx]);
     int idx = 0;
     int idx_left = left_child(0);
     int idx_right = right_child(0);
@@ -59,7 +64,6 @@ void * removeTopHeap(Heap aHeap){
             idx = idx_left;
             idx_left = left_child(idx);
             idx_right = left_child(idx);
-            free(temp);
         } else{
             void * temp = malloc(sizeof(aHeap->array[0]));
             memcpy(temp, aHeap->array[idx_right], sizeof(aHeap->array[0]));
@@ -68,32 +72,38 @@ void * removeTopHeap(Heap aHeap){
             idx = idx_right;
             idx_left = left_child(idx);
             idx_right = left_child(idx);
-            free(temp);
         }
     }
+    aHeap->size --;
     return removed;
 }
 
-void insertHeapItem(Heap aHeap, const void * item){
-    int idx = sizeof(aHeap->array)/ sizeof(item);
-    aHeap->array = realloc(aHeap->array, sizeof(item));
+void insertHeapItem(Heap aHeap, const void * item) {
+    int idx = aHeap->size;
+    if (idx == 0) {
+        aHeap->array = malloc(sizeof(item));
+    } else {
+        if (idx == aHeap->capacity) {
+            aHeap->capacity = 2 * aHeap->capacity;
+        }
+        aHeap->array = realloc(aHeap->array, sizeof(int));
+    }
+    aHeap->size++;
     aHeap->array[idx] = item;
     int parent_indx = parent(idx);
-    while (aHeap->compFu(aHeap->array[parent_indx], aHeap->array[idx]) > 0){
-        // REMEMBER TO FREE THIS MEMORY
-        memcpy(aHeap->array[idx], aHeap->array[parent_indx], sizeof(item));
-        aHeap->array[parent_indx] = item;
+    while (idx != 0 && aHeap->compFu(aHeap->array[parent_indx], aHeap->array[idx]) == 0) {
+        void * temp = aHeap->array[idx];
+        aHeap->array[idx] = aHeap->array[parent_indx];
+        aHeap->array[parent_indx] = temp;
         idx = parent_indx;
         parent_indx = parent(parent_indx);
     }
-    aHeap->capacity ++;
 }
+
 
 void dumpHeap(Heap aHeap, FILE * outfp){
-    //print entries in the correct order
+    for(int i = 0 ; i < aHeap->size ; i++){
+        aHeap->dumpEntry(aHeap->array[i], outfp);
+    }
 }
 
-int main() {
-    printf("Hello, World!\n");
-    return 0;
-}
