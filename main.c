@@ -36,7 +36,10 @@ Heap createHeap(size_t capacity
 }
 
 void destroyHeap( Heap aHeap ){
-
+    for(int i = aHeap->size - 1 ; i >= 0 ; i--){
+        free(aHeap->array[i]);
+    }
+    free(aHeap);
 }
 
 size_t sizeHeap(Heap aHeap){
@@ -49,29 +52,27 @@ const void * topHeap(const Heap aHeap){
 
 void * removeTopHeap(Heap aHeap){
     void * removed = aHeap->array[0];
-    int last_idx = sizeof(aHeap->array)/ sizeof(aHeap->array[0]);
-    memcpy(aHeap->array[0], aHeap->array[last_idx], sizeof(aHeap->array[0]));
+    int last_idx = aHeap->size -1;
+    aHeap->array[0] = aHeap->array[last_idx];
     int idx = 0;
     int idx_left = left_child(0);
     int idx_right = right_child(0);
-    while((aHeap->compFu(aHeap->array[0], aHeap->array[idx_left]) > 0) ||
-            (aHeap->compFu(aHeap->array[0], aHeap->array[idx_right]) > 0)){
-        if(aHeap->compFu(aHeap->array[idx_right], aHeap->array[idx_left]) > 0){
-            void * temp = malloc(sizeof(aHeap->array[0]));
-            memcpy(temp, aHeap->array[idx_left], sizeof(aHeap->array[0]));
-            memcpy(aHeap->array[idx_left], aHeap->array[idx], sizeof(aHeap->array[0]));
-            memcpy(aHeap->array[idx], temp, sizeof(aHeap->array[0]));
+    while((idx_left < aHeap->size && idx_right < aHeap->size) && ((aHeap->compFu(aHeap->array[idx], aHeap->array[idx_left]) == 0) ||
+            (aHeap->compFu(aHeap->array[idx], aHeap->array[idx_right]) == 0))){
+        if(aHeap->compFu(aHeap->array[idx_right], aHeap->array[idx_left]) == 0){
+            void * temp = aHeap->array[idx];
+            aHeap->array[idx] = aHeap->array[idx_left];
+            aHeap->array[idx_left] = temp;;
             idx = idx_left;
             idx_left = left_child(idx);
-            idx_right = left_child(idx);
+            idx_right = right_child(idx);
         } else{
-            void * temp = malloc(sizeof(aHeap->array[0]));
-            memcpy(temp, aHeap->array[idx_right], sizeof(aHeap->array[0]));
-            memcpy(aHeap->array[idx_right], aHeap->array[idx], sizeof(aHeap->array[0]));
-            memcpy(aHeap->array[idx], temp, sizeof(aHeap->array[0]));
+            void * temp = aHeap->array[idx];
+            aHeap->array[idx] = aHeap->array[idx_right];
+            aHeap->array[idx_right] = temp;
             idx = idx_right;
             idx_left = left_child(idx);
-            idx_right = left_child(idx);
+            idx_right = right_child(idx);
         }
     }
     aHeap->size --;
