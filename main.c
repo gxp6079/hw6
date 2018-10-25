@@ -10,6 +10,9 @@
 #include <memory.h>
 #include "HeapADT.h"
 
+/*
+ * Heap Structure represents a generic heap
+ */
 struct Heap_S{
     size_t capacity;
     int size;
@@ -18,18 +21,40 @@ struct Heap_S{
     const void ** array;
 };
 
+/*
+ * parent gets parent of the index
+ * @param i - index
+ * @return the index of i's parent
+ */
 int parent(int i){
     return (i - 1)/2;
 }
 
+/*
+ * left_child gets left_child of the index
+ * @param i - index
+ * @return the index of i's left child
+ */
 int left_child(int i){
     return 1 + i * 2;
 }
 
+/*
+ * right_child gets left_child of the index
+ * @param i - index
+ * @return the index of i's right child
+ */
 int right_child(int i){
     return 2 + i * 2;
 }
 
+/*
+ * creatHeap creates a Heap with the givem parameters
+ * @param capacity
+ * @param compFun - pointer to a comparision function
+ * @param dumpEntry - pointer to a function that prints an entry
+ * @return heap
+ */
 Heap createHeap(size_t capacity
                 , int (*compFun)(const void * lhs, const void * rhs)
                 , void (*dumpEntry) (const void * item, FILE * outfp)){
@@ -43,19 +68,38 @@ Heap createHeap(size_t capacity
     return new_heap;
 }
 
+/*
+ * destroyHeap - free's all memory allocated for the heap
+ * @param aHeap - Heap struct
+ */
 void destroyHeap( Heap aHeap ){
     free(aHeap->array);
     free(aHeap);
 }
 
+/*
+ * sizeHeap - gives the Heap's current size
+ * @param aHeap - Heap structure
+ * @return size of the heap
+ */
 size_t sizeHeap(Heap aHeap){
     return aHeap->size;
 }
 
+/*
+ * topHeap - gives the Heap's topmost element
+ * @param aHeap - Heap structure
+ * @return heap's top element
+ */
 const void * topHeap(const Heap aHeap){
     return aHeap->array[0];
 }
 
+/*
+ * removeTopHeap - removes the top of the heap
+ * @param aHeap - Heap structure
+ * @return removed item
+ */
 void * removeTopHeap(Heap aHeap){
     void * removed = (void *) aHeap->array[0];
     int last_idx = aHeap->size -1;
@@ -85,6 +129,11 @@ void * removeTopHeap(Heap aHeap){
     return removed;
 }
 
+/*
+ * insertHeapItem - adds a new element to the heap
+ * @param aHeap - Heap structure
+ * @param item - a poiter to the item to be stored
+ */
 void insertHeapItem(Heap aHeap, const void * item) {
     int idx = aHeap->size;
     if (idx == aHeap->capacity) {
@@ -103,7 +152,11 @@ void insertHeapItem(Heap aHeap, const void * item) {
     aHeap->size++;
 }
 
-
+/*
+ * dumpHeap - prints the heap
+ * @param aHeap - Heap structure
+ * @param outfp - file where the heap will be printed
+ */
 void dumpHeap(Heap aHeap, FILE * outfp){
     for(int i = 0 ; i < aHeap->size ; i++){
         aHeap->dumpEntry(aHeap->array[i], outfp);
